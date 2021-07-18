@@ -288,6 +288,8 @@ EmuThread::EmuThread(QObject* parent) : QThread(parent)
     connect(this, SIGNAL(screenLayoutChange()), mainWindow->panel, SLOT(onScreenLayoutChanged()));
     connect(this, SIGNAL(windowFullscreenToggle()), mainWindow, SLOT(onFullscreenToggled()));
     connect(this, SIGNAL(swapScreensToggle()), mainWindow->actScreenSwap, SLOT(trigger()));
+    connect(this, SIGNAL(cycleScreenLayout()), mainWindow, SLOT(onCycleScreenLayout()));
+    connect(this, SIGNAL(cycleScreenSizing()), mainWindow, SLOT(onCycleScreenSizing()));
 
     if (mainWindow->hasOGL) initOpenGL();
 }
@@ -385,6 +387,8 @@ void EmuThread::run()
         if (Input::HotkeyPressed(HK_FullscreenToggle)) emit windowFullscreenToggle();
 
         if (Input::HotkeyPressed(HK_SwapScreens)) emit swapScreensToggle();
+        if (Input::HotkeyPressed(HK_CycleScreenLayout)) emit cycleScreenLayout();
+        if (Input::HotkeyPressed(HK_CycleScreenSizing)) emit cycleScreenSizing();
 
         if (Input::HotkeyPressed(HK_SolarSensorDecrease))
         {
@@ -2491,6 +2495,15 @@ void MainWindow::onChangeScreenLayout(QAction* act)
     emit screenLayoutChange();
 }
 
+void MainWindow::onCycleScreenLayout()
+{
+    int oldLayout = Config::ScreenLayout;
+    Config::ScreenLayout = (oldLayout + 1) % 4;
+    actScreenLayout[Config::ScreenLayout]->setChecked(true);
+
+    emit screenLayoutChange();
+}
+
 void MainWindow::onChangeScreenSwap(bool checked)
 {
     Config::ScreenSwap = checked?1:0;
@@ -2502,6 +2515,15 @@ void MainWindow::onChangeScreenSizing(QAction* act)
 {
     int sizing = act->data().toInt();
     Config::ScreenSizing = sizing;
+
+    emit screenLayoutChange();
+}
+
+void MainWindow::onCycleScreenSizing()
+{
+    int oldSizing = Config::ScreenSizing;
+    Config::ScreenSizing = (oldSizing + 1) % 6;
+    actScreenSizing[Config::ScreenSizing]->setChecked(true);
 
     emit screenLayoutChange();
 }
